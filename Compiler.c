@@ -126,43 +126,101 @@ int getNextToken() {
 
     while (1) {
         ch = *pCrtCh;
+        printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
         switch (state) {
             case 0:
-            if (ch == EOF)
-			{
-				return END;
-				break;
-			} else if (isalpha(ch) || ch == '_')
-            {
-                pStartCh = pCrtCh++;
-                state = 1;
-            } else if (ch >= '1' && ch <= '9') {
-                pCrtCh++;
-                state = 3;
-            } else if (ch == '0')
-            {
-                pCrtCh++;
-                state = 5;
-            } else if (ch >= '0' && ch <= '7')
-			{
-                pCrtCh++;
-				state = 6;
+                if (isalpha(ch) || ch == '_') {
+                    pStartCh = pCrtCh++;
+                    state = 1;
+                
+                } else if (ch == ' ' || ch == '\r' || ch == '\t') {
+                    pCrtCh++;
+                } else if (ch == '\n') {
 
-			} else {
-                tkerr(addTk(END), "invalid character");
-            }
-            break;
+                    line++;
+                    pCrtCh++;
+
+                } else if (ch >= '1' && ch <= '9') {
+
+                    pCrtCh++;
+                    state = 3;
+
+                } else if (ch == '0') {
+                    pCrtCh++;
+                    state = 5;
+
+                } else if (ch >= '0' && ch <= '9' || ch >= 'a' && ch <= 'f' || ch >= 'A' && ch <= 'F') {
+
+                    pCrtCh++;
+                    state = 6;
+
+                } else if (ch == ',') {
+                    pCrtCh++;
+                    addTk(COMMA);
+                    return COMMA;
+                } else if (ch == ';') {
+                    pCrtCh++;
+                    addTk(SEMICOLON);
+                    return SEMICOLON;
+                } else if (ch == '(') {
+                    pCrtCh++;
+                    addTk(LPAR);
+                    return LPAR;
+                } else if (ch == ')') {
+                    pCrtCh++;
+                    addTk(RPAR);
+                    return RPAR;
+                } else if (ch == '[') {
+                    pCrtCh++;
+                    addTk(LBRACKET);
+                    return LBRACKET;
+                } else if (ch == ']') {
+                    pCrtCh++;
+                    addTk(RBRACKET);
+                    return RBRACKET;
+                } else if (ch == '{') {
+                    pCrtCh++;
+                    addTk(LACC);
+                    return LACC;
+                } else if (ch == '}') {
+                    pCrtCh++;
+                    addTk(RACC);
+                    return RACC;
+                } else if (ch == '+') {
+                    pCrtCh++;
+                    addTk(ADD);
+                    return ADD;
+                } else if (ch == '-') {
+                    pCrtCh++;
+                    addTk(SUB);
+                    return SUB;
+                } else if (ch == '*') {
+                    pCrtCh++;
+                    addTk(MUL);
+                    return MUL;
+                } else if (ch == '/') {
+                
+                    pCrtCh++;
+                    addTk(DIV);
+                    return DIV;
+                } else if (ch == 0) {
+                    addTk(END);
+                    return END;
+                } else {
+                    tkerr(addTk(END), "invalid character");
+                }
+                break;
 
             case 1:
-            if (isalnum(ch) || ch == '_') {
+                if (isalnum(ch) || ch == '_') {
                     pCrtCh++;
                 } else {
                     state = 2;
                 }
-            break;
+                break;
 
             case 2:
-            nCh = pCrtCh - pStartCh;
+                nCh = pCrtCh - pStartCh;
                 if (nCh == 5 && !memcmp(pStartCh, "break", 5)) {
                     tk = addTk(BREAK);
                 } else if (nCh == 4 && !memcmp(pStartCh, "char", 4)) {
@@ -172,28 +230,23 @@ int getNextToken() {
                     tk->text = createString(pStartCh, pCrtCh);
                 }
                 return tk->code;
-            break;
 
             case 3:
-            if (ch >= '0' && ch <= '9') {
-                pCrtCh++;
-                state = 4;
-            }
-            break;
-            case 4:
-            if (ch >= '0' && ch <= '9' || ch >= 'a' && ch <= 'f' || ch >= 'A' && ch <= 'F') 
-                pCrtCh++;
-                state = 2;
-                tk = addTk(CT_INT);
-                tk->i = strtol(pStartCh, NULL, 10);
-                return tk->code;
-            }
-            break;
+                if (ch >= '0' && ch <= '9') {
+                    pCrtCh++;
+                    state = 4;
+                } else if (ch >= '0' && ch <= '7') {
+                    pCrtCh++;
+                    state = 4;
+                } 
+                break;
 
-            
-            
+            case 4:
+                addTk(CT_INT);
+                return CT_INT;
         }
     }
+}
 
 
 // Show all tokens
