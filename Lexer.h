@@ -9,6 +9,7 @@ enum {
     VOID, WHILE
 };
 
+
 // Token structure
 typedef struct _Token {
     int code;
