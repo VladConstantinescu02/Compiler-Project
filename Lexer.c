@@ -5,18 +5,18 @@
 #include <ctype.h>
 #include "lexer.h"
 
-// Global variables
+
 Token *tokens = NULL;
 Token *lastToken = NULL;
 int line = 1;
 const char *pCrtCh = NULL;
 
-// Safe memory allocation
+
 #define SAFEALLOC(var, Type)                          \
     if ((var = (Type *)malloc(sizeof(Type))) == NULL) \
     err("not enough memory")
 
-// Error function
+
 void err(const char *fmt, ...)
 {
     va_list va;
@@ -28,7 +28,7 @@ void err(const char *fmt, ...)
     exit(-1);
 }
 
-// Token error function
+
 void tkerr(const Token *tk, const char *fmt, ...)
 {
     va_list va;
@@ -40,7 +40,7 @@ void tkerr(const Token *tk, const char *fmt, ...)
     exit(-1);
 }
 
-// Add token to the list
+
 Token *addTk(int code)
 {
     Token *tk;
@@ -57,10 +57,11 @@ Token *addTk(int code)
         tokens = tk;
     }
     lastToken = tk;
+    //printf("Added token: %d at line %d\n", tk->code, tk->line); // Debug line
     return tk;
 }
 
-// Create a string from pStartCh to pCrtCh (excluding)
+
 char *createString(const char *start, const char *end)
 {
     size_t len = end - start;
@@ -81,41 +82,41 @@ int getNextToken() {
 
     while (1) {
         ch = *pCrtCh;
-        printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
+        //printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
 
         switch (state) {
             case 0:
-                if (isalpha(ch) || ch == '_') {
-                    pStartCh = pCrtCh++;
-                    state = 1;
-                } else if (ch == ' ' || ch == '\r' || ch == '\t') {
-                    pCrtCh++; // Skip whitespace
-                } else if (ch == '\n') {
-                    line++;  // New line
-                    pCrtCh++; // Skip newline character
-                } else if (ch >= '1' && ch <= '9') {
-                    pCrtCh++;
-                    state = 3;
-                } else if (ch == '0') {
-                    pCrtCh++;
-                    state = 5; // Handle zero specifically
-                }          else if (ch == 0) {  // End of file reached
-                    addTk(END);
-                    return END;
-                } else {
-                    tkerr(addTk(END), "invalid character");
-                }
-                break;
+    if (isalpha(ch) || ch == '_') {
+        pStartCh = pCrtCh++;
+        state = 1;
+    } else if (ch == ' ' || ch == '\r' || ch == '\t') {
+        pCrtCh++;
+    } else if (ch == '\n') {
+        line++; 
+        pCrtCh++;
+    } else if (ch >= '1' && ch <= '9') {
+        pStartCh = pCrtCh++;
+        state = 3;
+    } else if (ch == '0') {
+        pStartCh = pCrtCh++;
+        state = 5; 
+    } else if (ch == 0) { 
+        addTk(END);
+        return END;
+    } else {
+        tkerr(addTk(END), "invalid character");
+    }
+    break;
 
             case 1:
                 if (isalnum(ch) || ch == '_') {
                     pCrtCh++;
                 } else {
-                    state = 2;  // Move to next state after processing identifier
+                    state = 2; 
                 }
                 break;
 
-            case 2:
+                case 2:  
                 nCh = pCrtCh - pStartCh;
                 if (nCh == 5 && !memcmp(pStartCh, "break", 5)) {
                     tk = addTk(BREAK);
@@ -127,38 +128,52 @@ int getNextToken() {
                 }
                 return tk->code;
 
-                case 3:  // Integer literal processing
+                case 3:  
                 if (ch >= '0' && ch <= '9') {
-                    pCrtCh++;  // Keep processing digits
+                    pCrtCh++; 
+                } else if (ch == '.') {
+                    pCrtCh++; 
+                    state = 7;
+                } else if (ch == 'e' || ch == 'E') {
+                    pCrtCh++; 
+                    state = 10; 
                 } else {
-                    state = 4;
+                    state = 4;  
                 }
                 break;
-
+            
             case 4:
-                addTk(CT_INT);  // Complete integer token
+                tk = addTk(CT_INT);  
+                tk->text = createString(pStartCh, pCrtCh); 
                 return CT_INT;
 
             case 5:
-                if (ch >= 0 && ch <= 7) {
-                    pCrtCh++;  // Keep processing octal digits
-                    state = 4;
-                } else if (ch == 'x' || ch == 'X') {
-                    pCrtCh++;
-                    state = 6;  // Move to hexadecimal state
+            if (ch >= '0' && ch <= '7') {
+                pCrtCh++;  
+                state = 4;
+            } else if (ch == 'x' || ch == 'X') {
+                pCrtCh++; 
+                ch = *pCrtCh; 
+                if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
+                    pCrtCh++; 
+                    state = 6; 
                 } else {
-                    tkerr(addTk(END), "invalid character in octal literal");
-
+                    tkerr(addTk(END), "expected a hexadecimal digit after '0x'");
                 }
-            break;
-
-            case 6:  // Hexadecimal literal processing
-            if (ch >= '0' || ch <= '9' || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
-                pCrtCh++;
-                state = 4;  // Move to hexadecimal state
+            } else if (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r' || ch == 0) {
+                
+                state = 4;
             } else {
                 tkerr(addTk(END), "invalid character in octal literal");
+            }            
+            break;
 
+            case 6: 
+            if (ch >= '0' || ch <= '9' || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
+                pCrtCh++;
+                state = 4; 
+            } else {
+                tkerr(addTk(END), "invalid character in octal literal");
             }
             break;
         }
@@ -167,20 +182,36 @@ int getNextToken() {
 
 
 
-// Show all tokens
-void showTokens()
-{
-    for (Token *tk = tokens; tk; tk = tk->next)
-    {
-        printf("%d", tk->code);
-        if (tk->code == ID)
-            printf(":%s", tk->text);
-        printf(" ");
+
+void showTokens() {
+    for (Token *tk = tokens; tk; tk = tk->next) {
+        printf("Token code: ");
+        switch (tk->code) {
+            case ID: 
+                printf("ID");
+                if (tk->text) 
+                    printf(" (%s)", tk->text);
+                break;
+            case CT_INT:
+                printf("CT_INT");
+                break;
+            case BREAK:
+                printf("BREAK");
+                break;
+            case CHAR:
+                printf("CHAR");
+                break;
+            case END:
+                printf("END");
+                break;
+            default:
+                printf("UNKNOWN");
+        }
+        printf(" at line %d\n", tk->line);
     }
-    printf("\n");
 }
 
-// Free all tokens
+
 void done()
 {
     Token *tk;
@@ -194,7 +225,7 @@ void done()
     }
 }
 
-// Read file content into memory
+
 char *readFileContent(const char *fileName)
 {
     FILE *file = fopen(fileName, "r");
@@ -220,7 +251,7 @@ char *readFileContent(const char *fileName)
     return content;
 }
 
-// Set input for lexer
+
 void setInput(const char *input)
 {
     pCrtCh = input;

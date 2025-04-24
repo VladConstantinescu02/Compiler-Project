@@ -9,6 +9,7 @@ int main(int argc, char **argv) {
     }
 
     char *input = readFileContent(argv[1]);
+    //printf("Input read: \n%s\n", input);
     setInput(input);
 
     while (getNextToken() != END);
