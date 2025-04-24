@@ -57,7 +57,7 @@ Token *addTk(int code)
         tokens = tk;
     }
     lastToken = tk;
-    //printf("Added token: %d at line %d\n", tk->code, tk->line); // Debug line
+    // printf("Added token: %d at line %d\n", tk->code, tk->line); 
     return tk;
 }
 
@@ -73,7 +73,7 @@ char *createString(const char *start, const char *end)
     return str;
 }
 
-// Get the next token
+
 int getNextToken() {
     int state = 0, nCh;
     char ch;
@@ -82,33 +82,33 @@ int getNextToken() {
 
     while (1) {
         ch = *pCrtCh;
-        //printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
+        printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
 
         switch (state) {
             case 0:
-    if (isalpha(ch) || ch == '_') {
-        pStartCh = pCrtCh++;
-        state = 1;
-    } else if (ch == ' ' || ch == '\r' || ch == '\t') {
-        pCrtCh++;
-    } else if (ch == '\n') {
-        line++; 
-        pCrtCh++;
-    } else if (ch >= '1' && ch <= '9') {
-        pStartCh = pCrtCh++;
-        state = 3;
-    } else if (ch == '0') {
-        pStartCh = pCrtCh++;
-        state = 5; 
-    } else if (ch == 0) { 
-        addTk(END);
-        return END;
-    } else {
-        tkerr(addTk(END), "invalid character");
-    }
-    break;
+                if (isalpha(ch) || ch == '_') {
+                    pStartCh = pCrtCh++;
+                    state = 1;
+                } else if (ch == ' ' || ch == '\r' || ch == '\t') {
+                    pCrtCh++;
+                } else if (ch == '\n') {
+                    line++; 
+                    pCrtCh++;
+                } else if (ch >= '1' && ch <= '9') {
+                    pStartCh = pCrtCh++;
+                    state = 3; 
+                } else if (ch == '0') {
+                    pStartCh = pCrtCh++;
+                    state = 5; 
+                } else if (ch == 0) { 
+                    addTk(END);
+                    return END;
+                } else {
+                    tkerr(addTk(END), "invalid character");
+                }
+                break;
 
-            case 1:
+            case 1: 
                 if (isalnum(ch) || ch == '_') {
                     pCrtCh++;
                 } else {
@@ -116,7 +116,7 @@ int getNextToken() {
                 }
                 break;
 
-                case 2:  
+            case 2: 
                 nCh = pCrtCh - pStartCh;
                 if (nCh == 5 && !memcmp(pStartCh, "break", 5)) {
                     tk = addTk(BREAK);
@@ -128,59 +128,132 @@ int getNextToken() {
                 }
                 return tk->code;
 
-                case 3:  
+            case 3: 
                 if (ch >= '0' && ch <= '9') {
-                    pCrtCh++; 
+                    pCrtCh++;
                 } else if (ch == '.') {
                     pCrtCh++; 
-                    state = 7;
+                    state = 7; 
                 } else if (ch == 'e' || ch == 'E') {
                     pCrtCh++; 
-                    state = 10; 
+                    state = 9; 
                 } else {
-                    state = 4;  
+                    state = 4; 
                 }
                 break;
-            
-            case 4:
-                tk = addTk(CT_INT);  
-                tk->text = createString(pStartCh, pCrtCh); 
+
+            case 4: 
+                tk = addTk(CT_INT);
+                tk->text = createString(pStartCh, pCrtCh);
                 return CT_INT;
 
-            case 5:
-            if (ch >= '0' && ch <= '7') {
-                pCrtCh++;  
-                state = 4;
-            } else if (ch == 'x' || ch == 'X') {
-                pCrtCh++; 
-                ch = *pCrtCh; 
-                if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
+            case 5: 
+                if (ch >= '0' && ch <= '7') {
+                    pCrtCh++;  
+                    state = 4; 
+                } else if (ch == 'x' || ch == 'X') {
                     pCrtCh++; 
-                    state = 6; 
-                } else {
-                    tkerr(addTk(END), "expected a hexadecimal digit after '0x'");
+                    ch = *pCrtCh; 
+                    if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
+                        pCrtCh++; 
+                        state = 6; 
+                    } else {
+                        tkerr(addTk(END), "expected a hexadecimal digit after '0x'");
+                    }
+                } else if (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r' || ch == 0) {
+                    state = 4; 
+                } else if (ch == '.') {
+                    pCrtCh++; 
+                    state = 7; 
+                } else if (ch == 'e' || ch == 'E') {
+                    pCrtCh++; 
+                    state = 9; 
+                } else if (ch == '8' || ch == '9') {
+                    pCrtCh++; 
+                    state = 3; 
+                } 
+                else {
+                    tkerr(addTk(END), "invalid character in octal/hex literal");
                 }
-            } else if (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r' || ch == 0) {
-                
-                state = 4;
-            } else {
-                tkerr(addTk(END), "invalid character in octal literal");
-            }            
-            break;
+                break;
 
             case 6: 
-            if (ch >= '0' || ch <= '9' || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
-                pCrtCh++;
-                state = 4; 
-            } else {
-                tkerr(addTk(END), "invalid character in octal literal");
-            }
+                if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')) {
+                    pCrtCh++; 
+                    state = 6;
+                } else {
+                    state = 4;
+                    tk = addTk(CT_INT);  
+                    tk->text = createString(pStartCh, pCrtCh);
+                    return CT_INT; 
+                }
             break;
+
+            case 7:
+                if (ch >= '0' && ch <= '9') {
+                    pCrtCh++;
+                    state = 8;
+                } else {
+                    tkerr(addTk(END), "Invalid character in fractional part");
+                }
+            break;
+        
+            case 8: 
+                if (ch >= '0' && ch <= '9') {
+                    pCrtCh++;
+                } else if (ch == 'e' || ch == 'E') { 
+                    pCrtCh++;
+                    state = 9;
+                } else {
+                    state = 12;
+                    tk = addTk(CT_REAL); 
+                    tk->text = createString(pStartCh, pCrtCh);
+                    return CT_REAL;
+                }
+            break;
+        
+            case 9: 
+                if (ch == '+' || ch == '-') {
+                    pCrtCh++; 
+                } else if (ch >= '0' && ch <= '9') {
+                    pCrtCh++;
+                    state = 10; 
+                } else {
+                    tkerr(addTk(END), "Invalid or missing digits in exponent");
+                }
+            break;
+            
+            case 10:
+                if (ch >= '0' && ch <= '9') {
+                    pCrtCh++;
+                } else {
+                    tk = addTk(CT_REAL); 
+                    tk->text = createString(pStartCh, pCrtCh);
+                    return CT_REAL;
+                }
+            break;
+            
+
+            case 11: 
+                if (ch >= '0' && ch <= '9') {
+                    pCrtCh++;
+                    state = 12;
+                } else {
+                    tk = addTk(CT_REAL);  
+                    tk->text = createString(pStartCh, pCrtCh);
+                    return CT_REAL; 
+                }
+            break;
+
+            case 12: 
+                    tk = addTk(CT_REAL);  
+                    tk->text = createString(pStartCh, pCrtCh);
+                    return CT_REAL; 
+
+
         }
     }
 }
-
-
 
 
 void showTokens() {
@@ -195,6 +268,9 @@ void showTokens() {
             case CT_INT:
                 printf("CT_INT");
                 break;
+            case CT_REAL:
+                printf("CT_REAL");
+                break;
             case BREAK:
                 printf("BREAK");
                 break;
@@ -207,9 +283,10 @@ void showTokens() {
             default:
                 printf("UNKNOWN");
         }
-        printf(" at line %d\n", tk->line);
+        printf(" at line %d\n", tk->line);       
     }
 }
+
 
 
 void done()
