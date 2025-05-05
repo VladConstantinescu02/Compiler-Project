@@ -57,7 +57,7 @@ Token *addTk(int code)
         tokens = tk;
     }
     lastToken = tk;
-    // printf("Added token: %d at line %d\n", tk->code, tk->line); 
+    printf("Added token: %d at line %d\n", tk->code, tk->line); 
     return tk;
 }
 
@@ -82,7 +82,7 @@ int getNextToken() {
 
     while (1) {
         ch = *pCrtCh;
-        printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
+        //printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
 
         switch (state) {
             case 0:
@@ -167,7 +167,27 @@ int getNextToken() {
                     tk = addTk(BREAK);
                 } else if (nCh == 4 && !memcmp(pStartCh, "char", 4)) {
                     tk = addTk(CHAR);
-                } else {
+                } else if (nCh == 2 && !memcmp(pStartCh, "if", 2)) {
+                    tk = addTk(IF);
+                } else if (nCh == 3 && !memcmp(pStartCh, "for", 3)) {
+                    tk = addTk(FOR);
+                } else if (nCh == 6 && !memcmp(pStartCh, "return", 6)) {
+                    tk = addTk(RETURN);
+                } else if (nCh == 7 && !memcmp(pStartCh, "struct", 6)) {
+                    tk = addTk(STRUCT);
+                } else if (nCh == 4 && !memcmp(pStartCh, "void", 4)) {
+                    tk = addTk(VOID);
+                } else if (nCh == 5 && !memcmp(pStartCh, "while", 5)) {
+                    tk = addTk(WHILE);
+                } else if (nCh == 4 && !memcmp(pStartCh, "else", 4)) {
+                    tk = addTk(ELSE);
+                } else if (nCh == 5 && !memcmp(pStartCh, "double", 6)) {
+                    tk = addTk(DOUBLE);
+                } else if (nCh == 3 && !memcmp(pStartCh, "int", 3)) {
+                    tk = addTk(INT);
+                } else if (nCh == 0) { 
+                    state = -1; 
+                } else{
                     tk = addTk(ID);
                     tk->text = createString(pStartCh, pCrtCh);
                 }
@@ -298,10 +318,10 @@ int getNextToken() {
             case 13:
                 if (ch == '\\') {
                     pCrtCh++;
-                    state = 14; // Handle escape sequences.
+                    state = 14; 
                 } else if (ch != '\'' && ch > 31 && ch < 127) {
                     pCrtCh++;
-                    state = 15; // Recognize a valid character.
+                    state = 15; 
                 } else {
                     tkerr(addTk(END), "Invalid character literal");
                 }
@@ -344,12 +364,12 @@ int getNextToken() {
             case 18:
                 if (ch == '\\') {
                     pCrtCh++;
-                    state = 14; // Handle escape sequences.
+                    state = 14;
                 } else if (ch != '"' && ch > 31 && ch < 127) {
                     pCrtCh++;
                 } else if (ch == '"') {
                     pCrtCh++;
-                    state = 20; // Finalize string.
+                    state = 20; 
                 } else {
                     tkerr(addTk(END), "Unterminated string literal");
                 }
@@ -453,10 +473,36 @@ void showTokens() {
             break;
             case EQUAL:
                 printf("EQUAL");
-            break;  
+            break; 
+            case INT:
+                printf("INT");
+            break; 
             case ASSIGN:
                 printf("ASSIGN");
             break;
+            case FOR:
+                printf("FOR");
+            break;  
+            case IF:
+                printf("IF");       
+            break;
+            case RETURN:
+                printf("RETURN");
+            break;
+            case STRUCT:
+                printf("STRUCT");   
+            break;
+            case VOID:
+                printf("VOID");
+            break;
+            case WHILE:
+                printf("WHILE");
+            break;
+            case AND:
+                printf("AND");
+            break;
+            
+
             default:
                 printf("UNKNOWN");
         }
