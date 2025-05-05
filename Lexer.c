@@ -57,7 +57,7 @@ Token *addTk(int code)
         tokens = tk;
     }
     lastToken = tk;
-    // printf("Added token: %d at line %d\n", tk->code, tk->line); 
+    printf("Added token: %d at line %d\n", tk->code, tk->line); 
     return tk;
 }
 
@@ -82,7 +82,7 @@ int getNextToken() {
 
     while (1) {
         ch = *pCrtCh;
-        printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
+        //printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
 
         switch (state) {
             case 0:
@@ -100,6 +100,52 @@ int getNextToken() {
                 } else if (ch == '0') {
                     pStartCh = pCrtCh++;
                     state = 5; 
+                } else if (ch == '\'') {
+                    pStartCh = pCrtCh++;
+                    state = 13; 
+                } else if (ch == '"') {
+                    pStartCh = pCrtCh++;
+                    state = 18; 
+                } else if (ch == '+') {
+                    pCrtCh++; 
+                    return addTk(ADD)->code;
+                } else if (ch == '-') {
+                    pCrtCh++; 
+                    return addTk(SUB)->code;
+                } else if (ch == '*') {
+                    pCrtCh++; 
+                    return addTk(MUL)->code;
+                } else if (ch == '/') {
+                    pCrtCh++; 
+                    state = 21;
+                    return addTk(DIV)->code;
+                } else if (ch == ';') {
+                    pCrtCh++; 
+                    return addTk(SEMICOLON)->code;
+                } else if (ch == ',') {
+                    pCrtCh++; 
+                    return addTk(COMMA)->code;
+                } else if (ch == '(') {
+                    pCrtCh++; 
+                    return addTk(LPAR)->code;
+                } else if (ch == ')') {
+                    pCrtCh++; 
+                    return addTk(RPAR)->code;
+                } else if (ch == '{') {
+                    pCrtCh++; 
+                    return addTk(LACC)->code;
+                } else if (ch == '}') {
+                    pCrtCh++; 
+                    return addTk(RACC)->code;
+                } else if (ch == '[') {
+                    pCrtCh++; 
+                    return addTk(LBRACKET)->code;
+                } else if (ch == ']') {
+                    pCrtCh++; 
+                    return addTk(RBRACKET)->code;
+                } else if (ch == '=') {
+                    pCrtCh++;
+                    return addTk(ASSIGN)->code; 
                 } else if (ch == 0) { 
                     addTk(END);
                     return END;
@@ -122,7 +168,27 @@ int getNextToken() {
                     tk = addTk(BREAK);
                 } else if (nCh == 4 && !memcmp(pStartCh, "char", 4)) {
                     tk = addTk(CHAR);
-                } else {
+                } else if (nCh == 2 && !memcmp(pStartCh, "if", 2)) {
+                    tk = addTk(IF);
+                } else if (nCh == 3 && !memcmp(pStartCh, "for", 3)) {
+                    tk = addTk(FOR);
+                } else if (nCh == 6 && !memcmp(pStartCh, "return", 6)) {
+                    tk = addTk(RETURN);
+                } else if (nCh == 7 && !memcmp(pStartCh, "struct", 6)) {
+                    tk = addTk(STRUCT);
+                } else if (nCh == 4 && !memcmp(pStartCh, "void", 4)) {
+                    tk = addTk(VOID);
+                } else if (nCh == 5 && !memcmp(pStartCh, "while", 5)) {
+                    tk = addTk(WHILE);
+                } else if (nCh == 4 && !memcmp(pStartCh, "else", 4)) {
+                    tk = addTk(ELSE);
+                } else if (nCh == 5 && !memcmp(pStartCh, "double", 6)) {
+                    tk = addTk(DOUBLE);
+                } else if (nCh == 3 && !memcmp(pStartCh, "int", 3)) {
+                    tk = addTk(INT);
+                } else if (nCh == 0) { 
+                    state = -1; 
+                } else{
                     tk = addTk(ID);
                     tk->text = createString(pStartCh, pCrtCh);
                 }
@@ -250,7 +316,90 @@ int getNextToken() {
                     tk->text = createString(pStartCh, pCrtCh);
                     return CT_REAL; 
 
+            case 13:
+                if (ch == '\\') {
+                    pCrtCh++;
+                    state = 14; 
+                } else if (ch != '\'' && ch > 31 && ch < 127) {
+                    pCrtCh++;
+                    state = 15; 
+                } else {
+                    tkerr(addTk(END), "Invalid character literal");
+                }
+            break;
 
+            case 14:
+             if (strchr("abfnrtv'?\"\\0", ch)) {
+                    pCrtCh++;
+                    state = 15; 
+                }else {
+                    tkerr(addTk(END), "Invalid escape sequence");
+                }
+            break;
+
+            case 15:
+                if (ch == '\'') {
+                    pCrtCh++;
+                    tk = addTk(CT_CHAR);
+                    tk->text = createString(pStartCh, pCrtCh);
+                    return CT_CHAR;
+                } else {
+                    tkerr(addTk(END), "Unterminated character literal");
+                }
+            break;
+
+            case 16:
+                tk = addTk(CT_CHAR); 
+                tk->text = createString(pStartCh, pCrtCh);
+                return CT_CHAR;
+
+            case 17:
+                if (strchr("abfnrtv'?\"\\0", ch)) {
+                    pCrtCh++;
+                    state = 15; 
+                }else {
+                    tkerr(addTk(END), "Invalid escape sequence");
+                }
+            break;
+
+            case 18:
+                if (ch == '\\') {
+                    pCrtCh++;
+                    state = 14;
+                } else if (ch != '"' && ch > 31 && ch < 127) {
+                    pCrtCh++;
+                } else if (ch == '"') {
+                    pCrtCh++;
+                    state = 20; 
+                } else {
+                    tkerr(addTk(END), "Unterminated string literal");
+                }
+            break;
+
+            
+            case 19:
+                if (ch == '"') {
+                    pCrtCh++;
+                    state = 20; 
+                } else {
+                    pCrtCh++;
+                    state = 18;
+                }
+            break;
+
+            case 20:
+                tk = addTk(CT_STRING);
+                tk->text = createString(pStartCh, pCrtCh);
+                return CT_STRING;
+
+            case 21:
+                if (ch == '*') {
+                    pCrtCh++; 
+                    state = 22; 
+                }
+            break;
+
+            
         }
     }
 }
@@ -264,22 +413,102 @@ void showTokens() {
                 printf("ID");
                 if (tk->text) 
                     printf(" (%s)", tk->text);
-                break;
+            break;
             case CT_INT:
                 printf("CT_INT");
-                break;
+            break;
             case CT_REAL:
                 printf("CT_REAL");
-                break;
+            break;
+            case CT_CHAR:
+                printf("CT_CHAR");
+            break;
+            case CT_STRING:
+                printf("CT_STRING");
+            break;
             case BREAK:
                 printf("BREAK");
-                break;
+            break;
             case CHAR:
                 printf("CHAR");
-                break;
+            break;
             case END:
                 printf("END");
-                break;
+            break;
+            case SEMICOLON:
+                printf("SEMICOLON");
+            break;
+            case COMMA:
+                printf("COMMA");
+            break; 
+            case LPAR:
+                printf("LPAR");
+            break;
+            case RPAR:
+                printf("RPAR");
+            break;
+            case LBRACKET:
+                printf("LBRACKET");
+            break;
+            case RBRACKET:
+                printf("RBRACKET");
+            break;
+            case LACC:
+                printf("LACC");
+            break;
+            case RACC:  
+                printf("RACC");
+            break;
+            case ADD:
+                printf("ADD");
+            break;
+            case SUB:
+                printf("SUB");
+            break;
+            case MUL:
+                printf("MUL");
+            break;  
+            case DIV:   
+                printf("DIV");
+            break;
+            case DOT:
+                printf("DOT");
+            break;
+            case OR:            
+                printf("OR");
+            break;
+            case EQUAL:
+                printf("EQUAL");
+            break; 
+            case INT:
+                printf("INT");
+            break; 
+            case ASSIGN:
+                printf("ASSIGN");
+            break;
+            case FOR:
+                printf("FOR");
+            break;  
+            case IF:
+                printf("IF");       
+            break;
+            case RETURN:
+                printf("RETURN");
+            break;
+            case STRUCT:
+                printf("STRUCT");   
+            break;
+            case VOID:
+                printf("VOID");
+            break;
+            case WHILE:
+                printf("WHILE");
+            break;
+            case AND:
+                printf("AND");
+            break;
+            
+
             default:
                 printf("UNKNOWN");
         }
