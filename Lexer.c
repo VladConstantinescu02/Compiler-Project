@@ -117,6 +117,7 @@ int getNextToken() {
                     return addTk(MUL)->code;
                 } else if (ch == '/') {
                     pCrtCh++; 
+                    state = 21;
                     return addTk(DIV)->code;
                 } else if (ch == ';') {
                     pCrtCh++; 
@@ -391,7 +392,12 @@ int getNextToken() {
                 tk->text = createString(pStartCh, pCrtCh);
                 return CT_STRING;
 
-
+            case 21:
+                if (ch == '*') {
+                    pCrtCh++; 
+                    state = 22; 
+                }
+            break;
 
             
         }
