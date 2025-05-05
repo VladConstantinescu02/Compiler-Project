@@ -6,3 +6,4 @@
 "Hello, World!"  
 "Test"
 'A' 'B'
+int n = 123;
