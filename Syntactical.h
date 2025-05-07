@@ -46,9 +46,9 @@ void runSyntacticalFromTokens() {
     crtTk = tokens;
 
     if (expr()) {
-        printf("Syntax OK\n");
+        printf("Syntax passes\n");
     } else {
-        tkerr(crtTk, "Syntax error in input");
+        printf("Syntax fails\n");
     }
 
     showTokens();

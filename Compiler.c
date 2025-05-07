@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "basis.h"
+#include "Syntactical.h"
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -13,6 +14,8 @@ int main(int argc, char **argv) {
     setInput(input);
 
     while (getNextToken() != END);
+
+    runSyntacticalFromTokens();  
     showTokens();
     done();
 
