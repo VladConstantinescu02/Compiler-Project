@@ -57,7 +57,7 @@ Token *addTk(int code)
         tokens = tk;
     }
     lastToken = tk;
-    printf("Added token: %d at line %d\n", tk->code, tk->line); 
+    //printf("Added token: %d at line %d\n", tk->code, tk->line); 
     return tk;
 }
 
@@ -186,8 +186,6 @@ int getNextToken() {
                     tk = addTk(DOUBLE);
                 } else if (nCh == 3 && !memcmp(pStartCh, "int", 3)) {
                     tk = addTk(INT);
-                } else if (nCh == 0) { 
-                    state = -1; 
                 } else{
                     tk = addTk(ID);
                     tk->text = createString(pStartCh, pCrtCh);

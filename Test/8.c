@@ -1,4 +1,4 @@
-/*
+/* 
 testare analizor lexical
 */
 void main()
