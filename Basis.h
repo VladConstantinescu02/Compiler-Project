@@ -20,7 +20,13 @@ typedef struct _Token {
     };
     int line;
     struct _Token *next;
+
 } Token;
+
+extern Token *tokens;
+
+void tkerr(const Token *tk, const char *fmt, ...);
+
 
 
 Token *addTk(int code);
