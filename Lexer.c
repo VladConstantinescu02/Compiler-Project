@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
-#include "lexer.h"
+#include "basis.h"
 
 
 Token *tokens = NULL;
@@ -82,8 +82,8 @@ int getNextToken() {
 
     while (1) {
         ch = *pCrtCh;
-        printf("Processing character: '%c' (code %d) at line %d, Pointer: %p\n", 
-        ch ? ch : '0', ch, line, pCrtCh);
+        /*printf("Processing character: '%c' (code %d) at line %d, Pointer: %p\n", 
+        ch ? ch : '0', ch, line, pCrtCh);*/
 
 
         switch (state) {
