@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include "basis.h"
 
-// Current token pointer used in parsing
+
 Token *crtTk;
 Token *consumedTk;
 
@@ -56,28 +56,22 @@ int expr() {
     return 0;
 }
 
-// --- Main Entry Point ---
-int main(int argc, char **argv) {
-    if (argc != 2) {
-        printf("Usage: %s source_file\n", argv[0]);
-        return 1;
-    }
-
+int runParser(const char *filename) {
     // Load source and run lexer
-    const char *input = readFileContent(argv[1]);
+    const char *input = readFileContent(filename);
     setInput(input);
 
     while (getNextToken() != END); // tokenize all input
     crtTk = tokens;                // set parser to start
 
     // Call start rule
-    if (expr()) {
+    if (unit()) {
         printf("Syntax OK\n");
     } else {
-        tkerr(crtTk, "Invalid expression.");
+        tkerr(crtTk, "Syntax error in program.");
     }
 
-    // Debug print
+    // Debug print (optional)
     showTokens();
 
     // Cleanup
