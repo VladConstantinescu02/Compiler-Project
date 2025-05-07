@@ -107,46 +107,63 @@ int getNextToken() {
                     pStartCh = pCrtCh++;
                     state = 18; 
                 } else if (ch == '+') {
-                    pCrtCh++; 
-                    return addTk(ADD)->code;
-                } else if (ch == '-') {
-                    pCrtCh++; 
-                    return addTk(SUB)->code;
-                } else if (ch == '*') {
-                    pCrtCh++; 
-                    return addTk(MUL)->code;
-                } else if (ch == '/') {
-                    pCrtCh++; 
+                    pStartCh = pCrtCh++;
                     state = 21;
-                    return addTk(DIV)->code;
+                } else if (ch == '-') {
+                    pStartCh = pCrtCh++;
+                    state = 22;
+                } else if (ch == '*') {
+                    pStartCh = pCrtCh++;
+                    state = 23;
+                } else if (ch == '/') {
+                    pStartCh = pCrtCh++;
+                    state = 24;
                 } else if (ch == ';') {
-                    pCrtCh++; 
-                    return addTk(SEMICOLON)->code;
+                    pStartCh = pCrtCh++;
+                    state = 25;
                 } else if (ch == ',') {
-                    pCrtCh++; 
-                    return addTk(COMMA)->code;
+                    pStartCh = pCrtCh++;
+                    state = 26;
                 } else if (ch == '(') {
-                    pCrtCh++; 
-                    return addTk(LPAR)->code;
+                    pStartCh = pCrtCh++;
+                    state = 27;
                 } else if (ch == ')') {
-                    pCrtCh++; 
-                    return addTk(RPAR)->code;
+                    pStartCh = pCrtCh++;
+                    state = 28;
                 } else if (ch == '{') {
-                    pCrtCh++; 
-                    return addTk(LACC)->code;
+                    pStartCh = pCrtCh++;
+                    state = 29;
                 } else if (ch == '}') {
-                    pCrtCh++; 
-                    return addTk(RACC)->code;
+                    pStartCh = pCrtCh++;
+                    state = 30;
                 } else if (ch == '[') {
-                    pCrtCh++; 
-                    return addTk(LBRACKET)->code;
+                    pStartCh = pCrtCh++;
+                    state = 31;
                 } else if (ch == ']') {
-                    pCrtCh++; 
-                    return addTk(RBRACKET)->code;
+                    pStartCh = pCrtCh++;
+                    state = 32;
                 } else if (ch == '=') {
-                    pCrtCh++;
-                    return addTk(ASSIGN)->code; 
-                } else if (ch == 0) { 
+                    pStartCh = pCrtCh++;
+                    state = 33; 
+                } else if (ch == '!') {
+                    pStartCh = pCrtCh++;
+                    state = 34; 
+                } else if (ch == '<') {
+                    pStartCh = pCrtCh++;
+                    state = 35; 
+                } else if (ch == '>') {
+                    pStartCh = pCrtCh++;
+                    state = 36; 
+                } else if (ch == '&') {
+                    pStartCh = pCrtCh++;
+                    state = 37; 
+                } else if (ch == '|') {
+                    pStartCh = pCrtCh++;
+                    state = 38; 
+                } else if (ch == '.') {
+                    pStartCh = pCrtCh++;
+                    state = 39; 
+                }  else if (ch == 0) { 
                     addTk(END);
                     return END;
                 } else {
@@ -391,13 +408,113 @@ int getNextToken() {
                 return CT_STRING;
 
             case 21:
-                if (ch == '*') {
-                    pCrtCh++; 
-                    state = 22; 
+                tk = addTk(ADD);
+                return ADD;
+                
+            case 22:
+                tk = addTk(SUB);
+                return SUB;
+
+            case 23:
+                tk = addTk(MUL);
+                return MUL;
+
+            case 24:
+                tk = addTk(DIV);
+                return DIV;
+
+            case 25:
+                tk = addTk(SEMICOLON);
+                return SEMICOLON;
+            
+            case 26:
+                tk = addTk(COMMA);
+                return COMMA;
+
+            case 27:
+                tk = addTk(LPAR);
+                return LPAR;
+            
+            case 28:    
+                tk = addTk(RPAR);
+                return RPAR;
+                
+            case 29:
+                tk = addTk(LBRACKET);
+                return LBRACKET;
+
+            case 30:
+                tk = addTk(RBRACKET);
+                return RBRACKET;
+            
+            case 31:
+                tk = addTk(LACC);
+                return LACC;
+
+            case 32:
+                tk = addTk(RACC);
+                return RACC;   
+                
+            case 33:
+                if (ch == '=') {
+                    pCrtCh++;
+                    tk = addTk(EQUAL);
+                } else {
+                    tk = addTk(ASSIGN);
+                }
+                return tk->code;    
+            break;
+
+            case 34:
+                if (ch == '=') {
+                    pCrtCh++;
+                    tk = addTk(NOTEQ);
+                } else {
+                    tk = addTk(NOT);
+                }
+                return tk->code;
+            break;
+
+            case 35:
+                if (ch == '=') {
+                    pCrtCh++;
+                    tk = addTk(LESSEQ);
+                } else {
+                    tk = addTk(LESS);
+                }
+                return tk->code;
+            break;
+
+            case 36:
+                if (ch == '=') {
+                    pCrtCh++;
+                    tk = addTk(GREATEREQ);
+                } else {
+                    tk = addTk(GREATER);
+                }
+                return tk->code;
+            break;
+
+            case 37:
+                if (ch == '&') {
+                    pCrtCh++;
+                    tk = addTk(AND);
+                    return tk->code;
+                } 
+            break;
+
+            case 38:
+                if (ch == '|') {
+                    pCrtCh++;
+                    tk = addTk(OR);
+                    return tk->code;
                 }
             break;
 
-            
+            case 39:
+                tk = addTk(DOT);
+                return tk->code;
+  
         }
     }
 }
