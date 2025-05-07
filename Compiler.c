@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "lexer.h"
+#include "basis.h"
 
 int main(int argc, char **argv) {
     if (argc != 2) {

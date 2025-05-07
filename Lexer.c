@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
-#include "lexer.h"
+#include "basis.h"
 
 
 Token *tokens = NULL;
@@ -82,8 +82,8 @@ int getNextToken() {
 
     while (1) {
         ch = *pCrtCh;
-        printf("Processing character: '%c' (code %d) at line %d, Pointer: %p\n", 
-        ch ? ch : '0', ch, line, pCrtCh);
+        /*printf("Processing character: '%c' (code %d) at line %d, Pointer: %p\n", 
+        ch ? ch : '0', ch, line, pCrtCh);*/
 
 
         switch (state) {
@@ -535,47 +535,47 @@ int getNextToken() {
             return tk->code;
 
 
-            case 40: // Inside a multi-line comment
+            case 40: 
             if (ch == '*') {
                 pCrtCh++;
-                state = 41; // Check for the end of the multi-line comment
+                state = 41; 
             } else if (ch == '\n') {
-                line++; // Track line numbers
+                line++; 
                 pCrtCh++;
             } else if (ch == 0) {
                 tkerr(addTk(END), "Unterminated multi-line comment");
             } else {
-                pCrtCh++; // Consume character and stay in comment
+                pCrtCh++;
             }
             break;
         
-        case 41: // Possible end of a multi-line comment
+        case 41: 
             if (ch == '/') {
                 pCrtCh++;
-                printf("Multi-line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh); // Print the multi-line comment
-                state = 0; // Return to initial state
+                printf("Multi-line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
+                state = 0; 
             } else if (ch == '*') {
-                pCrtCh++; // Stay in state 41 for cases like `/**/`
+                pCrtCh++; 
             } else if (ch == 0) {
                 tkerr(addTk(END), "Unterminated multi-line comment");
             } else {
-                state = 40; // Go back to processing inside the comment
+                state = 40; 
                 pCrtCh++;
             }
             break;
         
-        case 42: // Inside a single-line comment
+        case 42: 
             if (ch == '\n' || ch == '\r' || ch == '\t') {
-                line++; // Track line numbers
-                printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh); // Print the single-line comment
+                line++; 
+                printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh); 
                 pCrtCh++;
-                state = 0; // Return to initial state
+                state = 0; 
             } else if (ch == 0) {
-                printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh); // Print the single-line comment
-                addTk(END); // End of input
+                printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh); 
+                addTk(END); 
                 return END;
             } else {
-                pCrtCh++; // Consume character and stay in the single-line comment
+                pCrtCh++; 
             }
             break; 
 
@@ -745,14 +745,14 @@ char *readFileContent(const char *fileName) {
     long fileSize = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char *content = (char *)malloc(fileSize + 2); // +2 to ensure null-termination
+    char *content = (char *)malloc(fileSize + 2); 
     if (!content) {
         fclose(file);
         err("Not enough memory to read file");
     }
 
     fread(content, 1, fileSize, file);
-    content[fileSize] = '\0'; // Null-terminate the content
+    content[fileSize] = '\0';
     fclose(file);
     return content;
 }
