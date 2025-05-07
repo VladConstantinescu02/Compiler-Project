@@ -1,3 +1,6 @@
+/* 
+testare analizor lexical
+*/
 #include <stdio.h>
 
 int main() {
