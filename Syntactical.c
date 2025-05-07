@@ -5,41 +5,9 @@
 #include <ctype.h>
 #include "basis.h"
 
-
 Token *crtTk;
 Token *consumedTk;
 
-int expr();
-int exprAssign();
-int exprOr();
-int exprAnd();
-int exprEq();
-int exprRel();
-int exprAdd();
-int exprMul();
-int exprUnary();
-int exprPostfix();
-int exprPrimary();
-int typeBase();
-int arrayDecl();
-int typeName();
-int varDecl();
-int fnParam();
-int fnParamList();
-int fnDecl();
-int stm();
-int stmCompound();
-int stmIf();
-int stmWhile();
-int stmFor();
-int stmReturn();
-int declStruct();
-int decl();
-int unit();
-
-
-
-// --- Consume Function ---
 int consume(int code) {
     if (crtTk && crtTk->code == code) {
         consumedTk = crtTk;
@@ -49,32 +17,40 @@ int consume(int code) {
     return 0;
 }
 
-// --- Grammar Rule: expr ::= ID | CT_INT ---
 int expr() {
-    if (consume(ID)) return 1;
-    if (consume(CT_INT)) return 1;
+    Token *startTk = crtTk;
+
+    if (consume(ID)) {
+        return 1;
+    }
+    if (consume(CT_INT)) {
+        return 1;
+    }
+    if (consume(LPAR)) {
+        if (expr()) {
+            if (consume(RPAR)) {
+                return 1;
+            } else {
+                tkerr(crtTk, "missing )");
+            }
+        } else {
+            tkerr(crtTk, "invalid expression after (");
+        }
+        crtTk = startTk; 
+    }
     return 0;
 }
 
-int runParser(const char *filename) {
-    // Load source and run lexer
-    const char *input = readFileContent(filename);
-    setInput(input);
 
-    while (getNextToken() != END); // tokenize all input
-    crtTk = tokens;                // set parser to start
+void runSyntacticalFromTokens() {
+    crtTk = tokens;
 
-    // Call start rule
-    if (unit()) {
+    if (expr()) {
         printf("Syntax OK\n");
     } else {
-        tkerr(crtTk, "Syntax error in program.");
+        tkerr(crtTk, "Syntax error in input");
     }
 
-    // Debug print (optional)
     showTokens();
-
-    // Cleanup
     done();
-    return 0;
 }
