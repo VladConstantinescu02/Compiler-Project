@@ -82,7 +82,9 @@ int getNextToken() {
 
     while (1) {
         ch = *pCrtCh;
-        //printf("Processing character: '%c' (code %d) at line %d\n", ch, ch, line);
+        printf("Processing character: '%c' (code %d) at line %d, Pointer: %p\n", 
+        ch ? ch : '0', ch, line, pCrtCh);
+
 
         switch (state) {
             case 0:
@@ -199,10 +201,12 @@ int getNextToken() {
                     tk = addTk(WHILE);
                 } else if (nCh == 4 && !memcmp(pStartCh, "else", 4)) {
                     tk = addTk(ELSE);
-                } else if (nCh == 5 && !memcmp(pStartCh, "double", 6)) {
+                } else if (nCh == 6 && !memcmp(pStartCh, "double", 6)) {
                     tk = addTk(DOUBLE);
                 } else if (nCh == 3 && !memcmp(pStartCh, "int", 3)) {
                     tk = addTk(INT);
+                } else if (nCh == 4 && !memcmp(pStartCh, "main", 4)) {
+                    tk = addTk(MAIN);
                 } else{
                     tk = addTk(ID);
                     tk->text = createString(pStartCh, pCrtCh);
@@ -230,7 +234,8 @@ int getNextToken() {
 
             case 5: 
                 if (ch >= '0' && ch <= '7') {
-                    pCrtCh++;  
+                    pCrtCh++;
+                    ch = *pCrtCh; 
                     state = 4; 
                 } else if (ch == 'x' || ch == 'X') {
                     pCrtCh++; 
@@ -254,7 +259,9 @@ int getNextToken() {
                     state = 3; 
                 } 
                 else {
-                    tkerr(addTk(END), "invalid character in octal/hex literal");
+                    tk = addTk(CT_INT);
+                    tk->text = createString(pStartCh, pCrtCh);
+                    return CT_INT;
                 }
                 break;
 
@@ -344,24 +351,25 @@ int getNextToken() {
             break;
 
             case 14:
-             if (strchr("abfnrtv'?\"\\0", ch)) {
-                    pCrtCh++;
-                    state = 15; 
-                }else {
-                    tkerr(addTk(END), "Invalid escape sequence");
-                }
-            break;
+                if (strchr("abfnrtv'?\"\\0", ch)) {
+                        pCrtCh++;
+                        state = 15; 
+                    }else {
+                        tkerr(addTk(END), "Invalid escape sequence");
+                    }
+                break;
 
             case 15:
                 if (ch == '\'') {
                     pCrtCh++;
                     tk = addTk(CT_CHAR);
-                    tk->text = createString(pStartCh, pCrtCh);
+                    tk->text = createString(pStartCh, pCrtCh); // Ensure the string ends correctly
                     return CT_CHAR;
                 } else {
                     tkerr(addTk(END), "Unterminated character literal");
                 }
             break;
+
 
             case 16:
                 tk = addTk(CT_CHAR); 
@@ -419,101 +427,158 @@ int getNextToken() {
                 tk = addTk(MUL);
                 return MUL;
 
-            case 24:
-                tk = addTk(DIV);
-                return DIV;
+            case 24: // After encountering `/`
+                if (ch == '*') {
+                    pCrtCh++;
+                    state = 40; // Enter multi-line comment
+                    pStartCh = pCrtCh - 2; // Mark start of multi-line comment
+                } else if (ch == '/') {
+                    pCrtCh++;
+                    state = 42; // Enter single-line comment
+                    pStartCh = pCrtCh - 2; // Mark start of single-line comment
+                } else {
+                    tk = addTk(DIV); // Not a comment, treat as DIV
+                    return DIV;
+                }
+            break;
 
             case 25:
-                tk = addTk(SEMICOLON);
-                return SEMICOLON;
+            tk = addTk(SEMICOLON);
+            return SEMICOLON;
+        
+        case 26:
+            tk = addTk(COMMA);
+            return COMMA;
+
+        case 27:
+            tk = addTk(LPAR);
+            return LPAR;
+        
+        case 28:    
+            tk = addTk(RPAR);
+            return RPAR;
             
-            case 26:
-                tk = addTk(COMMA);
-                return COMMA;
+        case 29:
+            tk = addTk(LBRACKET);
+            return LBRACKET;
 
-            case 27:
-                tk = addTk(LPAR);
-                return LPAR;
+        case 30:
+            tk = addTk(RBRACKET);
+            return RBRACKET;
+        
+        case 31:
+            tk = addTk(LACC);
+            return LACC;
+
+        case 32:
+            tk = addTk(RACC);
+            return RACC;   
             
-            case 28:    
-                tk = addTk(RPAR);
-                return RPAR;
-                
-            case 29:
-                tk = addTk(LBRACKET);
-                return LBRACKET;
+        case 33:
+            if (ch == '=') {
+                pCrtCh++;
+                tk = addTk(EQUAL);
+            } else {
+                tk = addTk(ASSIGN);
+            }
+            return tk->code;    
+        break;
 
-            case 30:
-                tk = addTk(RBRACKET);
-                return RBRACKET;
-            
-            case 31:
-                tk = addTk(LACC);
-                return LACC;
+        case 34:
+            if (ch == '=') {
+                pCrtCh++;
+                tk = addTk(NOTEQ);
+            } else {
+                tk = addTk(NOT);
+            }
+            return tk->code;
+        break;
 
-            case 32:
-                tk = addTk(RACC);
-                return RACC;   
-                
-            case 33:
-                if (ch == '=') {
-                    pCrtCh++;
-                    tk = addTk(EQUAL);
-                } else {
-                    tk = addTk(ASSIGN);
-                }
-                return tk->code;    
-            break;
+        case 35:
+            if (ch == '=') {
+                pCrtCh++;
+                tk = addTk(LESSEQ);
+            } else {
+                tk = addTk(LESS);
+            }
+            return tk->code;
+        break;
 
-            case 34:
-                if (ch == '=') {
-                    pCrtCh++;
-                    tk = addTk(NOTEQ);
-                } else {
-                    tk = addTk(NOT);
-                }
+        case 36:
+            if (ch == '=') {
+                pCrtCh++;
+                tk = addTk(GREATEREQ);
+            } else {
+                tk = addTk(GREATER);
+            }
+            return tk->code;
+        break;
+
+        case 37:
+            if (ch == '&') {
+                pCrtCh++;
+                tk = addTk(AND);
                 return tk->code;
-            break;
+            } 
+        break;
 
-            case 35:
-                if (ch == '=') {
-                    pCrtCh++;
-                    tk = addTk(LESSEQ);
-                } else {
-                    tk = addTk(LESS);
-                }
+        case 38:
+            if (ch == '|') {
+                pCrtCh++;
+                tk = addTk(OR);
                 return tk->code;
-            break;
+            }
+        break;
 
-            case 36:
-                if (ch == '=') {
-                    pCrtCh++;
-                    tk = addTk(GREATEREQ);
-                } else {
-                    tk = addTk(GREATER);
-                }
-                return tk->code;
-            break;
+        case 39:
+            tk = addTk(DOT);
+            return tk->code;
 
-            case 37:
-                if (ch == '&') {
-                    pCrtCh++;
-                    tk = addTk(AND);
-                    return tk->code;
-                } 
-            break;
 
-            case 38:
-                if (ch == '|') {
-                    pCrtCh++;
-                    tk = addTk(OR);
-                    return tk->code;
-                }
+            case 40: // Inside a multi-line comment
+            if (ch == '*') {
+                pCrtCh++;
+                state = 41; // Check for the end of the multi-line comment
+            } else if (ch == '\n') {
+                line++; // Track line numbers
+                pCrtCh++;
+            } else if (ch == 0) {
+                tkerr(addTk(END), "Unterminated multi-line comment");
+            } else {
+                pCrtCh++; // Consume character and stay in comment
+            }
             break;
+        
+        case 41: // Possible end of a multi-line comment
+            if (ch == '/') {
+                pCrtCh++;
+                printf("Multi-line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh); // Print the multi-line comment
+                state = 0; // Return to initial state
+            } else if (ch == '*') {
+                pCrtCh++; // Stay in state 41 for cases like `/**/`
+            } else if (ch == 0) {
+                tkerr(addTk(END), "Unterminated multi-line comment");
+            } else {
+                state = 40; // Go back to processing inside the comment
+                pCrtCh++;
+            }
+            break;
+        
+        case 42: // Inside a single-line comment
+            if (ch == '\n' || ch == '\r' || ch == '\t') {
+                line++; // Track line numbers
+                printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh); // Print the single-line comment
+                pCrtCh++;
+                state = 0; // Return to initial state
+            } else if (ch == 0) {
+                printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh); // Print the single-line comment
+                addTk(END); // End of input
+                return END;
+            } else {
+                pCrtCh++; // Consume character and stay in the single-line comment
+            }
+            break; 
 
-            case 39:
-                tk = addTk(DOT);
-                return tk->code;
   
         }
     }
@@ -622,6 +687,30 @@ void showTokens() {
             case AND:
                 printf("AND");
             break;
+            case NOT:
+                printf("NOT");
+            break;
+            case NOTEQ:
+                printf("NOTEQ");
+            break;  
+            case LESSEQ:
+                printf("LESSEQ");
+            break;  
+            case LESS:
+                printf("LESS");
+            break;
+            case GREATEREQ:
+                printf("GREATEREQ");
+            break;      
+            case GREATER:
+                printf("GREATER");
+            break;
+            case MAIN:
+                printf("MAIN");
+            break;  
+            case DOUBLE:
+                printf("DOUBLE");   
+            break;
             
 
             default:
@@ -647,27 +736,23 @@ void done()
 }
 
 
-char *readFileContent(const char *fileName)
-{
+char *readFileContent(const char *fileName) {
     FILE *file = fopen(fileName, "r");
-    if (!file)
-    {
+    if (!file) {
         err("Could not open file %s", fileName);
     }
     fseek(file, 0, SEEK_END);
     long fileSize = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char *content = (char *)malloc(fileSize + 1);
-    if (!content)
-    {
+    char *content = (char *)malloc(fileSize + 2); // +2 to ensure null-termination
+    if (!content) {
         fclose(file);
         err("Not enough memory to read file");
     }
 
     fread(content, 1, fileSize, file);
-    content[fileSize] = '\0';
-
+    content[fileSize] = '\0'; // Null-terminate the content
     fclose(file);
     return content;
 }
