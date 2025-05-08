@@ -282,7 +282,7 @@ int getNextToken() {
                     pCrtCh++;
                     state = 8;
                 } else {
-                    tkerr(addTk(END), "Invalid character in fractional part");
+                    tkerr(addTk(END), "Error in state 7");
                 }
             break;
         
@@ -307,7 +307,7 @@ int getNextToken() {
                     pCrtCh++;
                     state = 10; 
                 } else {
-                    tkerr(addTk(END), "Invalid or missing digits in exponent");
+                    tkerr(addTk(END), "Error in state 9");
                 }
             break;
             
@@ -346,7 +346,7 @@ int getNextToken() {
                     pCrtCh++;
                     state = 15; 
                 } else {
-                    tkerr(addTk(END), "Invalid character literal");
+                    tkerr(addTk(END), "Error in state 13");
                 }
             break;
 
@@ -355,7 +355,7 @@ int getNextToken() {
                         pCrtCh++;
                         state = 15; 
                     }else {
-                        tkerr(addTk(END), "Invalid escape sequence");
+                        tkerr(addTk(END), "Error in state 14");
                     }
                 break;
 
@@ -363,10 +363,10 @@ int getNextToken() {
                 if (ch == '\'') {
                     pCrtCh++;
                     tk = addTk(CT_CHAR);
-                    tk->text = createString(pStartCh, pCrtCh); // Ensure the string ends correctly
+                    tk->text = createString(pStartCh, pCrtCh); 
                     return CT_CHAR;
                 } else {
-                    tkerr(addTk(END), "Unterminated character literal");
+                    tkerr(addTk(END), "Error in state 15");
                 }
             break;
 
@@ -381,7 +381,7 @@ int getNextToken() {
                     pCrtCh++;
                     state = 15; 
                 }else {
-                    tkerr(addTk(END), "Invalid escape sequence");
+                    tkerr(addTk(END), "Error in state 17");
                 }
             break;
 
@@ -395,7 +395,7 @@ int getNextToken() {
                     pCrtCh++;
                     state = 20; 
                 } else {
-                    tkerr(addTk(END), "Unterminated string literal");
+                    tkerr(addTk(END), "Error in state 18");
                 }
             break;
 
@@ -427,17 +427,17 @@ int getNextToken() {
                 tk = addTk(MUL);
                 return MUL;
 
-            case 24: // After encountering `/`
+            case 24: 
                 if (ch == '*') {
                     pCrtCh++;
-                    state = 40; // Enter multi-line comment
-                    pStartCh = pCrtCh - 2; // Mark start of multi-line comment
+                    state = 40; 
+                    pStartCh = pCrtCh - 2; 
                 } else if (ch == '/') {
                     pCrtCh++;
-                    state = 42; // Enter single-line comment
-                    pStartCh = pCrtCh - 2; // Mark start of single-line comment
+                    state = 42; 
+                    pStartCh = pCrtCh - 2; 
                 } else {
-                    tk = addTk(DIV); // Not a comment, treat as DIV
+                    tk = addTk(DIV); 
                     return DIV;
                 }
             break;
@@ -543,7 +543,7 @@ int getNextToken() {
                 line++; 
                 pCrtCh++;
             } else if (ch == 0) {
-                tkerr(addTk(END), "Unterminated multi-line comment");
+                tkerr(addTk(END), "Error in state 40");
             } else {
                 pCrtCh++;
             }
@@ -557,7 +557,7 @@ int getNextToken() {
             } else if (ch == '*') {
                 pCrtCh++; 
             } else if (ch == 0) {
-                tkerr(addTk(END), "Unterminated multi-line comment");
+                tkerr(addTk(END), "Error in state 41");
             } else {
                 state = 40; 
                 pCrtCh++;
