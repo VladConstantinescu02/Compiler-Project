@@ -385,7 +385,7 @@ int getNextToken()
                     pCrtCh++;
                     state = 8;
                 } else {
-                    tkerr(addTk(END), "Invalid character in fractional part");
+                    tkerr(addTk(END), "Invalid in state 7");
                 }
             break;
 
@@ -415,7 +415,7 @@ int getNextToken()
                     pCrtCh++;
                     state = 10; 
                 } else {
-                    tkerr(addTk(END), "Invalid or missing digits in exponent");
+                    tkerr(addTk(END), "Invalid in state 9");
                 }
             break;
 
@@ -459,7 +459,7 @@ int getNextToken()
                 pCrtCh++;
                 state = 15; 
             } else {
-                tkerr(addTk(END), "Invalid character literal");
+                tkerr(addTk(END), "Invalid state 13");
             }
             break;
         
@@ -468,7 +468,7 @@ int getNextToken()
                 pCrtCh++;
                 state = 15; 
             } else {
-                tkerr(addTk(END), "Invalid escape sequence in character literal");
+                tkerr(addTk(END), "Invalid in state 14");
             }
             break;
         
@@ -480,7 +480,7 @@ int getNextToken()
                 tk->text = createString(pStartCh, pCrtCh); 
                 return CT_CHAR;
             } else {
-                tkerr(addTk(END), "Unterminated character literal");
+                tkerr(addTk(END), "Invalid in state 15");
             }
             break;
 
@@ -502,7 +502,7 @@ int getNextToken()
             } else if (ch > 31 && ch < 127 && ch != '\\' && ch != '"') { 
                 pCrtCh++;
             } else {
-                tkerr(addTk(END), "Invalid character in string literal");
+                tkerr(addTk(END), "Invalid in state 17");
             }
             break;
         
@@ -511,7 +511,7 @@ int getNextToken()
                 pCrtCh++;
                 state = 17; 
             } else {
-                tkerr(addTk(END), "Invalid escape sequence in string literal");
+                tkerr(addTk(END), "Invalid in state 18");
             }
             break;
         
@@ -659,46 +659,46 @@ int getNextToken()
             tk = addTk(DOT);
             return tk->code;
 
-        case 39: // Inside block comment
-            if (ch == '*') { // Possible end of comment
+        case 39: 
+            if (ch == '*') { 
                 pCrtCh++;
                 state = 40;
-            } else if (ch == '\n') { // Track line number
+            } else if (ch == '\n') { 
                 line++;
                 pCrtCh++;
-            } else if (ch == 0) { // End of file before closing `*/`
+            } else if (ch == 0) { 
                 tkerr(addTk(END), "Unterminated block comment");
-            } else { // Continue inside the comment
+            } else { 
                 pCrtCh++;
             }
             break;
 
-        case 40: // Possible end of block comment
-            if (ch == '/') { // Closing `*/`
+        case 40: 
+            if (ch == '/') { 
                 pCrtCh++;
                 printf("Block comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
-                state = 0; // Return to initial state
-            } else if (ch == '*') { // Stay in potential end state
+                state = 0; 
+            } else if (ch == '*') { 
                 pCrtCh++;
-            } else if (ch == 0) { // End of file before closing `*/`
+            } else if (ch == 0) { 
                 tkerr(addTk(END), "Unterminated block comment");
-            } else { // Return to inside block comment
+            } else {
                 state = 39;
                 pCrtCh++;
             }
             break;
 
-        case 41: // Inside line comment
-            if (ch == '\n' || ch == '\r') { // End of line comment
+        case 41: 
+            if (ch == '\n' || ch == '\r') { 
                 line++;
                 printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
                 pCrtCh++;
-                state = 0; // Return to initial state
-            } else if (ch == 0) { // End of file
+                state = 0; 
+            } else if (ch == 0) { 
                 printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
                 addTk(END);
                 return END;
-            } else { // Continue inside line comment
+            } else { 
                 pCrtCh++;
             }
             break;
