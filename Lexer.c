@@ -52,7 +52,7 @@ Token *addTk(int code)
         tokens = tk;
     }
     lastToken = tk;
-    printf("Added token: %d at line %d\n", tk->code, tk->line);
+    //printf("Added token: %d at line %d\n", tk->code, tk->line);
     return tk;
 }
 
@@ -77,8 +77,8 @@ int getNextToken()
     while (1)
     {
         ch = *pCrtCh;
-        printf("Processing character: '%c' (code %d) at line %d, Pointer: %p\n",
-               ch ? ch : '0', ch, line, pCrtCh);
+        /*printf("Processing character: '%c' (code %d) at line %d, Pointer: %p\n",
+               ch ? ch : '0', ch, line, pCrtCh); */
 
         switch (state)
         {
