@@ -140,8 +140,9 @@ int declStruct() {
     if (consume(STRUCT)) {
         if (consume(ID)) {
             if (consume(LACC)) {
-                while (declVar()) {
-                    // Keep consuming declVars
+                while (1) {
+                    if (!declVar()) {}
+                    else break;
                 }
 
                 if (consume(RACC)) {
@@ -152,13 +153,13 @@ int declStruct() {
                         tkerr(crtTk, "missing ; after struct declaration");
                     }
                 } else {
-                    tkerr(crtTk, "missing } after struct body");
+                    tkerr(crtTk, "missing } after struct declaration");
                 }
             } else {
-                tkerr(crtTk, "missing { to start struct body");
+                tkerr(crtTk, "missing { after struct declaration");
             }
         } else {
-            tkerr(crtTk, "missing struct name");
+            tkerr(crtTk, "missing ID after struct");
         }
     }
 
