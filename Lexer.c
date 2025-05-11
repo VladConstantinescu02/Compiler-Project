@@ -52,7 +52,7 @@ Token *addTk(int code)
         tokens = tk;
     }
     lastToken = tk;
-    // printf("Added token: %d at line %d\n", tk->code, tk->line);
+    printf("Added token: %d at line %d\n", tk->code, tk->line);
     return tk;
 }
 
