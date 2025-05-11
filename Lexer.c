@@ -115,102 +115,102 @@ int getNextToken()
             else if (ch == '"')
             {
                 pStartCh = pCrtCh++;
-                state = 18;
+                state = 17;
             }
             else if (ch == '+')
             {
                 pStartCh = pCrtCh++;
-                state = 21;
+                state = 20;
             }
             else if (ch == '-')
             {
                 pStartCh = pCrtCh++;
-                state = 22;
+                state = 21;
             }
             else if (ch == '*')
             {
                 pStartCh = pCrtCh++;
-                state = 23;
+                state = 22;
             }
             else if (ch == '/')
             {
                 pStartCh = pCrtCh++;
-                state = 24;
+                state = 23;
             }
             else if (ch == ';')
             {
                 pStartCh = pCrtCh++;
-                state = 25;
+                state = 24;
             }
             else if (ch == ',')
             {
                 pStartCh = pCrtCh++;
-                state = 26;
+                state = 25;
             }
             else if (ch == '(')
             {
                 pStartCh = pCrtCh++;
-                state = 27;
+                state = 26;
             }
             else if (ch == ')')
             {
                 pStartCh = pCrtCh++;
-                state = 28;
+                state = 27;
             }
             else if (ch == '{')
             {
                 pStartCh = pCrtCh++;
-                state = 29;
+                state = 28;
             }
             else if (ch == '}')
             {
                 pStartCh = pCrtCh++;
-                state = 30;
+                state = 29;
             }
             else if (ch == '[')
             {
                 pStartCh = pCrtCh++;
-                state = 31;
+                state = 30;
             }
             else if (ch == ']')
             {
                 pStartCh = pCrtCh++;
-                state = 32;
+                state = 31;
             }
             else if (ch == '=')
             {
                 pStartCh = pCrtCh++;
-                state = 33;
+                state = 32;
             }
             else if (ch == '!')
             {
                 pStartCh = pCrtCh++;
-                state = 34;
+                state = 33;
             }
             else if (ch == '<')
             {
                 pStartCh = pCrtCh++;
-                state = 35;
+                state = 34;
             }
             else if (ch == '>')
             {
                 pStartCh = pCrtCh++;
-                state = 36;
+                state = 35;
             }
             else if (ch == '&')
             {
                 pStartCh = pCrtCh++;
-                state = 37;
+                state = 36;
             }
             else if (ch == '|')
             {
                 pStartCh = pCrtCh++;
-                state = 38;
+                state = 37;
             }
             else if (ch == '.')
             {
                 pStartCh = pCrtCh++;
-                state = 39;
+                state = 38;
             }
             else if (ch == 0)
             {
@@ -451,111 +451,99 @@ int getNextToken()
             tk->text = createString(pStartCh, pCrtCh);
             return CT_REAL;
 
-            case 13:
-                if (ch == '\\') {
-                    pCrtCh++;
-                    state = 14; 
-                } else if (ch != '\'' && ch > 31 && ch < 127) {
-                    pCrtCh++;
-                    state = 15; 
-                } else {
-                    tkerr(addTk(END), "Invalid character literal");
-                }
-            break;
-
-            case 14:
-                if (strchr("abfnrtv'?\"\\0", ch)) {
-                        pCrtCh++;
-                        state = 15; 
-                    }else {
-                        tkerr(addTk(END), "Invalid escape sequence");
-                    }
-                break;
-
-        case 15: // End of a character literal
-            if (ch == '\'')
-            { // Closing single quote
+            case 13: 
+            if (ch == '\\') {
                 pCrtCh++;
-                tk = addTk(CT_CHAR);
-                tk->text = createString(pStartCh, pCrtCh); // Extract the literal
-                return CT_CHAR;
+                state = 14; 
+            } else if (ch > 31 && ch < 127 && ch != '\'' && ch != '\\') {
+                pCrtCh++;
+                state = 15; 
+            } else {
+                tkerr(addTk(END), "Invalid character literal");
             }
-            else
-            {            
-                pCrtCh++; 
+            break;
+        
+        case 14:
+            if (strchr("abfnrtv'?\"\\0", ch)) {
+                pCrtCh++;
+                state = 15; 
+            } else {
+                tkerr(addTk(END), "Invalid escape sequence in character literal");
+            }
+            break;
+        
+        case 15:
+            if (ch == '\'') { 
+                pCrtCh++;
+                state = 16; 
+                tk = addTk(CT_CHAR);
+                tk->text = createString(pStartCh, pCrtCh); 
+                return CT_CHAR;
+            } else {
                 tkerr(addTk(END), "Unterminated character literal");
             }
             break;
 
-        case 16: 
+        case 16:
+            state = 16; 
             tk = addTk(CT_CHAR);
             tk->text = createString(pStartCh, pCrtCh);
-            return CT_CHAR;
-
-            case 17:
-                if (strchr("abfnrtv'?\"\\0", ch)) {
-                    pCrtCh++;
-                    state = 15; 
-                }else {
-                    tkerr(addTk(END), "Invalid escape sequence");
-                }
+            
+        case 17: 
+            if (ch == '\\') { 
+                pCrtCh++;
+                state = 18; 
+            } else if (ch == '"') { 
+                state = 19; 
+                pCrtCh++;
+                tk = addTk(CT_STRING);
+                tk->text = createString(pStartCh, pCrtCh); 
+                return CT_STRING;
+            } else if (ch > 31 && ch < 127 && ch != '\\' && ch != '"') { 
+                pCrtCh++;
+            } else {
+                tkerr(addTk(END), "Invalid character in string literal");
+            }
             break;
-
-            case 18:
-                if (ch == '\\') {
-                    pCrtCh++;
-                    state = 14;
-                } else if (ch != '"' && ch > 31 && ch < 127) {
-                    pCrtCh++;
-                } else if (ch == '"') {
-                    pCrtCh++;
-                    state = 20; 
-                } else {
-                    tkerr(addTk(END), "Unterminated string literal");
-                }
+        
+        case 18: 
+            if (strchr("abfnrtv'?\"\\0", ch)) {
+                pCrtCh++;
+                state = 17; 
+            } else {
+                tkerr(addTk(END), "Invalid escape sequence in string literal");
+            }
             break;
+        
 
         case 19: 
-            if (strchr("abfnrtv'?\"\\0", ch))
-            { 
-                pCrtCh++;
-                state = 18;
-            }
-            else
-            {             
-                pCrtCh++; 
-                tkerr(addTk(END), "Invalid sate 19");
-            }
-            break;
-
-        case 20: 
             tk = addTk(CT_STRING);
             tk->text = createString(pStartCh, pCrtCh);
             return CT_STRING;
 
-        case 21:
+        case 20:
             tk = addTk(ADD);
             return ADD;
 
-        case 22:
+        case 21:
             tk = addTk(SUB);
             return SUB;
 
-        case 23:
+        case 22:
             tk = addTk(MUL);
             return MUL;
 
-        case 24:
+        case 23:
             if (ch == '*')
             {
                 pCrtCh++;
-                state = 40;
+                state = 39;
                 pStartCh = pCrtCh - 2;
             }
             else if (ch == '/')
             {
                 pCrtCh++;
-                state = 42;
+                state = 41;
                 pStartCh = pCrtCh - 2;
             }
             else
@@ -565,39 +553,39 @@ int getNextToken()
             }
             break;
 
-        case 25:
+        case 24:
             tk = addTk(SEMICOLON);
             return SEMICOLON;
 
-        case 26:
+        case 25:
             tk = addTk(COMMA);
             return COMMA;
 
-        case 27:
+        case 26:
             tk = addTk(LPAR);
             return LPAR;
 
-        case 28:
+        case 27:
             tk = addTk(RPAR);
             return RPAR;
 
-        case 29:
+        case 28:
             tk = addTk(LBRACKET);
             return LBRACKET;
 
-        case 30:
+        case 29:
             tk = addTk(RBRACKET);
             return RBRACKET;
 
-        case 31:
+        case 30:
             tk = addTk(LACC);
             return LACC;
 
-        case 32:
+        case 31:
             tk = addTk(RACC);
             return RACC;
 
-        case 33:
+        case 32:
             if (ch == '=')
             {
                 pCrtCh++;
@@ -610,7 +598,7 @@ int getNextToken()
             return tk->code;
             break;
 
-        case 34:
+        case 33:
             if (ch == '=')
             {
                 pCrtCh++;
@@ -623,7 +611,7 @@ int getNextToken()
             return tk->code;
             break;
 
-        case 35:
+        case 34:
             if (ch == '=')
             {
                 pCrtCh++;
@@ -636,7 +624,7 @@ int getNextToken()
             return tk->code;
             break;
 
-        case 36:
+        case 35:
             if (ch == '=')
             {
                 pCrtCh++;
@@ -649,7 +637,7 @@ int getNextToken()
             return tk->code;
             break;
 
-        case 37:
+        case 36:
             if (ch == '&')
             {
                 pCrtCh++;
@@ -658,7 +646,7 @@ int getNextToken()
             }
             break;
 
-        case 38:
+        case 37:
             if (ch == '|')
             {
                 pCrtCh++;
@@ -667,62 +655,54 @@ int getNextToken()
             }
             break;
 
-        case 39:
+        case 38:
             tk = addTk(DOT);
             return tk->code;
 
-        case 40:
-            if (ch == '*')
-            {
+        case 39: // Inside block comment
+            if (ch == '*') { // Possible end of comment
                 pCrtCh++;
-                state = 41;
-            }
-            else if (ch == '\n')
-            {
+                state = 40;
+            } else if (ch == '\n') { // Track line number
                 line++;
                 pCrtCh++;
-            } else if (ch == 0) {
-                tkerr(addTk(END), "Unterminated multi-line comment");
-            } else {
+            } else if (ch == 0) { // End of file before closing `*/`
+                tkerr(addTk(END), "Unterminated block comment");
+            } else { // Continue inside the comment
                 pCrtCh++;
             }
             break;
 
-        case 41:
-            if (ch == '/')
-            {
+        case 40: // Possible end of block comment
+            if (ch == '/') { // Closing `*/`
                 pCrtCh++;
-                printf("Multi-line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
-                state = 0; 
-            } else if (ch == '*') {
-                pCrtCh++; 
-            } else if (ch == 0) {
-                tkerr(addTk(END), "Unterminated multi-line comment");
-            } else {
-                state = 40; 
+                printf("Block comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
+                state = 0; // Return to initial state
+            } else if (ch == '*') { // Stay in potential end state
+                pCrtCh++;
+            } else if (ch == 0) { // End of file before closing `*/`
+                tkerr(addTk(END), "Unterminated block comment");
+            } else { // Return to inside block comment
+                state = 39;
                 pCrtCh++;
             }
             break;
 
-        case 42:
-            if (ch == '\n' || ch == '\r' || ch == '\t')
-            {
+        case 41: // Inside line comment
+            if (ch == '\n' || ch == '\r') { // End of line comment
                 line++;
                 printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
                 pCrtCh++;
-                state = 0;
-            }
-            else if (ch == 0)
-            {
+                state = 0; // Return to initial state
+            } else if (ch == 0) { // End of file
                 printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
                 addTk(END);
                 return END;
-            }
-            else
-            {
+            } else { // Continue inside line comment
                 pCrtCh++;
             }
             break;
+
         }
     }
 }
@@ -877,29 +857,31 @@ void done()
     }
 }
 
-char *readFileContent(const char *fileName)
-{
-    FILE *file = fopen(fileName, "r");
-    if (!file)
-    {
+char *readFileContent(const char *fileName) {
+    FILE *file = fopen(fileName, "rb"); 
+    if (!file) {
         err("Could not open file %s", fileName);
     }
+
     fseek(file, 0, SEEK_END);
     long fileSize = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char *content = (char *)malloc(fileSize + 2);
-    if (!content)
-    {
+
+    char *content = (char *)malloc(fileSize + 1);
+    if (!content) {
         fclose(file);
         err("Not enough memory to read file");
     }
 
-    fread(content, 1, fileSize, file);
-    content[fileSize] = '\0';
+  
+    size_t bytesRead = fread(content, 1, fileSize, file);
+    content[bytesRead] = '\0';
+
     fclose(file);
     return content;
 }
+
 
 void setInput(const char *input)
 {
