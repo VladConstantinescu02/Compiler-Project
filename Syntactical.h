@@ -622,8 +622,8 @@ int declStruct() {
 int declFunc() {
     Token *startTk = crtTk;
 
-    if (typeBase() || consume(VOID)) { // Allow either typeBase or VOID
-        consume(MUL); // MUL is optional
+    if (typeBase() || consume(VOID)) { 
+        consume(MUL); 
     } else {
         tkerr(crtTk, "missing type or void in function declaration");
         crtTk = startTk;
