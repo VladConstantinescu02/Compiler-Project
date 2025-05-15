@@ -256,7 +256,7 @@ int getNextToken()
             {
                 tk = addTk(RETURN);
             }
-            else if (nCh == 7 && !memcmp(pStartCh, "struct", 6))
+            else if (nCh == 6 && !memcmp(pStartCh, "struct", 6))
             {
                 tk = addTk(STRUCT);
             }
@@ -280,16 +280,13 @@ int getNextToken()
             {
                 tk = addTk(INT);
             }
-            else if (nCh == 4 && !memcmp(pStartCh, "main", 4))
-            {
-                tk = addTk(MAIN);
-            }
             else
             {
                 tk = addTk(ID);
                 tk->text = createString(pStartCh, pCrtCh);
             }
             return tk->code;
+        break;
 
         case 3:
             if (ch >= '0' && ch <= '9')
@@ -317,53 +314,49 @@ int getNextToken()
             tk->text = createString(pStartCh, pCrtCh);
             return CT_INT;
 
-        case 5:
-            if (ch >= '0' && ch <= '7')
-            {
-                pCrtCh++;
-                ch = *pCrtCh;
-                state = 4;
-            }
-            else if (ch == 'x' || ch == 'X')
-            {
-                pCrtCh++;
-                ch = *pCrtCh;
-                if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))
-                {
-                    pCrtCh++;
-                    state = 6;
-                }
-                else
-                {
-                    tkerr(addTk(END), "Ivalid in state 5'");
-                }
-            }
-            else if (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r' || ch == 0)
-            {
-                state = 4;
-            }
-            else if (ch == '.')
-            {
-                pCrtCh++;
-                state = 7;
-            }
-            else if (ch == 'e' || ch == 'E')
-            {
-                pCrtCh++;
-                state = 9;
-            }
-            else if (ch == '8' || ch == '9')
-            {
-                pCrtCh++;
-                state = 3;
-            }
-            else
-            {
-                tk = addTk(CT_INT);
-                tk->text = createString(pStartCh, pCrtCh);
-                return CT_INT;
-            }
-            break;
+case 5:
+    if (ch == 'x' || ch == 'X') {
+        pCrtCh++;
+        ch = *pCrtCh;
+        if (isxdigit(ch)) {
+            pCrtCh++;
+            ch = *pCrtCh;
+            state = 6;  // hex scan
+        } else {
+            tkerr(addTk(END), "Invalid hex constant after 0x");
+        }
+    }
+    else if (ch >= '0' && ch <= '7') {
+        // Stay in state 5 and consume all octal digits
+        pCrtCh++;
+        ch = *pCrtCh;
+        // Remain in state 5 — continue checking
+    }
+    else if (ch == '8' || ch == '9') {
+        // Invalid octal digit — treat as decimal
+        pCrtCh++;
+        ch = *pCrtCh;
+        state = 3;  // decimal number continuation
+    }
+    else if (ch == '.') {
+        pCrtCh++;
+        ch = *pCrtCh;
+        state = 7;  // float transition
+    }
+    else if (ch == 'e' || ch == 'E') {
+        pCrtCh++;
+        ch = *pCrtCh;
+        state = 9;  // exponent
+    }
+    else {
+        // End of octal number
+        tk = addTk(CT_INT);
+        tk->text = createString(pStartCh, pCrtCh);
+        return CT_INT;
+    }
+    break;
+
+
 
         case 6:
             if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))
@@ -570,20 +563,20 @@ int getNextToken()
             return RPAR;
 
         case 28:
-            tk = addTk(LBRACKET);
-            return LBRACKET;
-
-        case 29:
-            tk = addTk(RBRACKET);
-            return RBRACKET;
-
-        case 30:
             tk = addTk(LACC);
             return LACC;
 
-        case 31:
+        case 29:
             tk = addTk(RACC);
             return RACC;
+
+        case 30:
+            tk = addTk(LBRACKET);
+            return LBRACKET;
+
+        case 31:
+            tk = addTk(RBRACKET);
+            return RBRACKET;
 
         case 32:
             if (ch == '=')
@@ -797,6 +790,9 @@ void showTokens()
         case IF:
             printf("IF");
             break;
+        case ELSE:
+            printf("ELSE");
+            break;  
         case RETURN:
             printf("RETURN");
             break;
@@ -829,9 +825,6 @@ void showTokens()
             break;
         case GREATER:
             printf("GREATER");
-            break;
-        case MAIN:
-            printf("MAIN");
             break;
         case DOUBLE:
             printf("DOUBLE");
