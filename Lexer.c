@@ -487,32 +487,32 @@ case 5:
                 pCrtCh++;
                 state = 18; 
             } else if (ch == '"') { 
-                state = 19; 
                 pCrtCh++;
-                tk = addTk(CT_STRING);
-                tk->text = createString(pStartCh, pCrtCh); 
-                return CT_STRING;
-            } else if (ch > 31 && ch < 127 && ch != '\\' && ch != '"') { 
+                state = 19;
+            } else if (ch > 31 && ch < 127) { 
                 pCrtCh++;
-            } else {
+            } else { 
                 tkerr(addTk(END), "Invalid in state 17");
             }
-            break;
-        
-        case 18: 
-            if (strchr("abfnrtv'?\"\\0", ch)) {
+        break;
+
+        case 18:
+            if (strchr("abfnrtv'?\"\\0", ch)) { 
                 pCrtCh++;
                 state = 17; 
-            } else {
+            } else if (ch == '"') { 
+                pCrtCh++;
+                state = 19; 
+            } else { 
                 tkerr(addTk(END), "Invalid in state 18");
             }
-            break;
-        
+        break;
 
         case 19: 
             tk = addTk(CT_STRING);
             tk->text = createString(pStartCh, pCrtCh);
             return CT_STRING;
+    
 
         case 20:
             tk = addTk(ADD);
