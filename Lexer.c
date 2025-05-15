@@ -321,35 +321,35 @@ case 5:
         if (isxdigit(ch)) {
             pCrtCh++;
             ch = *pCrtCh;
-            state = 6;  // hex scan
+            state = 6; 
         } else {
-            tkerr(addTk(END), "Invalid hex constant after 0x");
+            tkerr(addTk(END), "Invalid after 0x");
         }
     }
     else if (ch >= '0' && ch <= '7') {
-        // Stay in state 5 and consume all octal digits
+
         pCrtCh++;
         ch = *pCrtCh;
-        // Remain in state 5 — continue checking
+
     }
     else if (ch == '8' || ch == '9') {
-        // Invalid octal digit — treat as decimal
+    
         pCrtCh++;
         ch = *pCrtCh;
-        state = 3;  // decimal number continuation
+        state = 3;  
     }
     else if (ch == '.') {
         pCrtCh++;
         ch = *pCrtCh;
-        state = 7;  // float transition
+        state = 7;  
     }
     else if (ch == 'e' || ch == 'E') {
         pCrtCh++;
         ch = *pCrtCh;
-        state = 9;  // exponent
+        state = 9;  
     }
     else {
-        // End of octal number
+
         tk = addTk(CT_INT);
         tk->text = createString(pStartCh, pCrtCh);
         return CT_INT;
@@ -358,20 +358,20 @@ case 5:
 
 
 
-        case 6:
-            if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))
-            {
-                pCrtCh++;
-                state = 6;
-            }
-            else
-            {
-                state = 4;
-                tk = addTk(CT_INT);
-                tk->text = createString(pStartCh, pCrtCh);
-                return CT_INT;
-            }
-            break;
+    case 6:
+        if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))
+        {
+            pCrtCh++;
+            state = 6;
+        }
+        else
+        {
+            state = 4;
+            tk = addTk(CT_INT);
+            tk->text = createString(pStartCh, pCrtCh);
+            return CT_INT;
+        }
+    break;
 
             case 7:
                 if (ch >= '0' && ch <= '9') {

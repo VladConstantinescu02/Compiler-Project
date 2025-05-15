@@ -1,5 +1,14 @@
-if (__cplusplus >= 201703L) {
-    // C++17 or later
-} else {
-    // C++14 or earlier
-}       
+struct example
+{
+    int a;
+};
+
+
+
+int main()
+{
+    int x;
+    x = 5;
+    printf("Printing Integer value %d", x);
+    return 0;
+}
