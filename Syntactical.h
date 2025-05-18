@@ -181,15 +181,28 @@ int exprOr() {
 
 int exprAssign() {
     Token *startTk = crtTk;
+
     if (exprUnary()) {
         if (consume(ASSIGN)) {
-            if (!exprAssign()) tkerr(crtTk, "missing right-hand operand for =");
+            if (!exprAssign()) {
+                tkerr(crtTk, "Expected expression after =");
+                crtTk = startTk;
+                return 0;
+            }
+            expr_assign_flag = 1;
             return 1;
         }
+        // It’s still a valid exprAssign without =
+        crtTk = startTk;
+    }
+
+    if (exprOr()) {
+        expr_assign_flag = 1;
         return 1;
     }
+
     crtTk = startTk;
-    return exprOr();
+    return 0;
 }
 
 int expr() {
@@ -215,16 +228,53 @@ int stm() {
         return 1;
     }
     if (consume(FOR)) {
-        if (!consume(LPAR)) tkerr(crtTk, "missing ( after for");
-        expr(); 
-        if (!consume(SEMICOLON)) tkerr(crtTk, "missing ; in for");
-        expr(); 
-        if (!consume(SEMICOLON)) tkerr(crtTk, "missing ; in for");
-        expr(); 
-        if (!consume(RPAR)) tkerr(crtTk, "missing ) in for");
-        if (!stm()) tkerr(crtTk, "missing statement after for");
-        return 1;
+    printf("[DEBUG] Matched token: FOR (line %d)\n", consumedTk->line);
+
+    if (!consume(LPAR)) {
+        printf("[DEBUG] Expected token: LPAR, found: %d (line %d)\n", crtTk->code, crtTk->line);
+        tkerr(crtTk, "missing ( after for");
     }
+    printf("[DEBUG] Matched token: LPAR (line %d)\n", consumedTk->line);
+
+    printf("[DEBUG] Parsing initialization expression, starting at token: %d (line %d)\n", crtTk->code, crtTk->line);
+    expr();  // optional
+    printf("[DEBUG] After initialization expression, current token: %d (line %d)\n", crtTk->code, crtTk->line);
+
+    if (!consume(SEMICOLON)) {
+        printf("[DEBUG] Expected token: SEMICOLON, found: %d (line %d)\n", crtTk->code, crtTk->line);
+        tkerr(crtTk, "missing ; after initialization in for");
+    }
+    printf("[DEBUG] Matched token: SEMICOLON (line %d)\n", consumedTk->line);
+
+    printf("[DEBUG] Parsing condition expression, starting at token: %d (line %d)\n", crtTk->code, crtTk->line);
+    expr();  // optional
+    printf("[DEBUG] After condition expression, current token: %d (line %d)\n", crtTk->code, crtTk->line);
+
+    if (!consume(SEMICOLON)) {
+        printf("[DEBUG] Expected token: SEMICOLON, found: %d (line %d)\n", crtTk->code, crtTk->line);
+        tkerr(crtTk, "missing ; after condition in for");
+    }
+    printf("[DEBUG] Matched token: SEMICOLON (line %d)\n", consumedTk->line);
+
+    printf("[DEBUG] Parsing update expression, starting at token: %d (line %d)\n", crtTk->code, crtTk->line);
+    expr();  // optional
+    printf("[DEBUG] After update expression, current token: %d (line %d)\n", crtTk->code, crtTk->line);
+
+    if (!consume(RPAR)) {
+        printf("[DEBUG] Expected token: RPAR, found: %d (line %d)\n", crtTk->code, crtTk->line);
+        tkerr(crtTk, "missing ) in for");
+    }
+    printf("[DEBUG] Matched token: RPAR (line %d)\n", consumedTk->line);
+
+    if (!stm()) {
+        printf("[DEBUG] Failed to parse statement after FOR loop, token: %d (line %d)\n", crtTk->code, crtTk->line);
+        tkerr(crtTk, "missing statement after for");
+    }
+    printf("[DEBUG] Successfully parsed FOR statement body.\n");
+
+    return 1;
+}
+
     if (consume(BREAK)) {
         if (!consume(SEMICOLON)) tkerr(crtTk, "missing ; after break");
         return 1;
@@ -329,7 +379,7 @@ crtTk = tokens;
 
 
 if (unit()) {
-    printf("Parsing completed successfully.n");
+    printf("Parsing completed successfully.\n");
 } else {
     tkerr(crtTk, "Syntax error during parsing.");
 }
