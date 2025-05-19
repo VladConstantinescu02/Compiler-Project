@@ -5,30 +5,6 @@
 #include <ctype.h>
 #include "basis.h"
 
-int unit_flag;
-int decl_struct_flag;
-int decl_var_flag;
-int type_base_flag;
-int array_decl_flag;
-int type_name_flag;
-int decl_func_flag;
-int func_arg_flag;
-int stm_flag;
-int stm_compound_flag;
-int expr_flag;
-int expr_assign_flag;
-int expr_or_flag;
-int expr_or1_flag;
-int expr_and_flag;
-int expr_and1_flag;
-int expr_eq_flag;
-int expr_rel_flag;
-int expr_add_flag;
-int expr_mul_flag;
-int expr_cast_flag;
-int expr_unary_flag;
-int expr_postfix_flag;
-int expr_primary_flag;
 
 int expr();
 int exprAssign();
@@ -86,7 +62,6 @@ int exprPrimary() {
     }
 
     if (consume(CT_INT) || consume(CT_REAL) || consume(CT_CHAR) || consume(CT_STRING)) {
-        expr_primary_flag = 1;
         return 1;
     }
 
