@@ -669,7 +669,7 @@ case 5:
         case 40: 
             if (ch == '/') { 
                 pCrtCh++;
-                printf("Block comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
+                printf("Block comment: %.*s\n\n", (int)(pCrtCh - pStartCh), pStartCh);
                 state = 0; 
             } else if (ch == '*') { 
                 pCrtCh++;
@@ -684,11 +684,11 @@ case 5:
         case 41: 
             if (ch == '\n' || ch == '\r') { 
                 line++;
-                printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
+                printf("Line comment: %.*s\n\n", (int)(pCrtCh - pStartCh), pStartCh);
                 pCrtCh++;
                 state = 0; 
             } else if (ch == 0) { 
-                printf("Line comment: %.*s\n", (int)(pCrtCh - pStartCh), pStartCh);
+                printf("Line comment: %.*s\n\n", (int)(pCrtCh - pStartCh), pStartCh);
                 addTk(END);
                 return END;
             } else { 
