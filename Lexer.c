@@ -656,7 +656,7 @@ case 5:
             if (ch == '*') { 
                 pCrtCh++;
                 state = 40;
-            } else if (ch == '\n') { 
+            } else if (ch == '\n' && ch != '*') { 
                 line++;
                 pCrtCh++;
             } else if (ch == 0) { 
