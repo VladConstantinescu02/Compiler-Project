@@ -40,6 +40,14 @@ int consume(int code) {
     return 0;
 }
 
+/*
+exprPrimary: ID ( LPAR ( expr ( COMMA expr )* )? RPAR )?
+           | CT_INT
+           | CT_REAL 
+           | CT_CHAR 
+           | CT_STRING 
+           | LPAR expr RPAR ;
+*/
 int exprPrimary() {
     Token *startTk = crtTk;
 
@@ -79,7 +87,15 @@ int exprPrimary() {
     return 0;
 }
 
+
+/*
+exprPostfix: exprPostfix LBRACKET expr RBRACKET
+           | exprPostfix DOT ID 
+           | exprPrimary ;
+*/
 int exprPostfix() {
+    Token *startTk = crtTk;
+
     if (!exprPrimary()) {
         return 0;
     }
@@ -98,7 +114,11 @@ int exprPostfix() {
     return 1;
 }
 
+
+//exprUnary: ( SUB | NOT ) exprUnary | exprPostfix ;
 int exprUnary() {
+    Token *startTk = crtTk;
+
     if (consume(SUB) || consume(NOT)) {
         if (!exprUnary()) {
             tkerr(crtTk, "missing operand for unary operator");
@@ -108,8 +128,10 @@ int exprUnary() {
     return exprPostfix();
 }
 
+//exprCast: LPAR typeName RPAR exprCast | exprUnary ;
 int exprCast() {
     Token *startTk = crtTk;
+
     if (consume(LPAR)) {
         if (typeName()) {
             if (!consume(RPAR)) {
@@ -125,7 +147,10 @@ int exprCast() {
     return exprUnary();
 }
 
+//exprMul: exprMul ( MUL | DIV ) exprCast | exprCast ;
 int exprMul() {
+    Token *startTk = crtTk;
+
     if (!exprCast()) {
         return 0; 
     }
@@ -138,7 +163,10 @@ int exprMul() {
     return 1;
 }
 
+//exprAdd: exprAdd ( ADD | SUB ) exprMul | exprMul ;
 int exprAdd() {
+    Token *startTk = crtTk;
+
     if (!exprMul()) {
         return 0;
     }
@@ -151,7 +179,10 @@ int exprAdd() {
     return 1;
 }
 
+//exprRel: exprRel ( LESS | LESSEQ | GREATER | GREATEREQ ) exprAdd | exprAdd ;
 int exprRel() {
+    Token *startTk = crtTk;
+
     if (!exprAdd()) {
         return 0;
     }
@@ -162,7 +193,10 @@ int exprRel() {
     return 1;
 }
 
+//exprEq: exprEq ( EQUAL | NOTEQ ) exprRel | exprRel ;
 int exprEq() {
+    Token *startTk = crtTk;
+
     if (!exprRel()) {
         return 0;
     }
@@ -175,7 +209,10 @@ int exprEq() {
     return 1;
 }
 
+//exprAnd: exprAnd AND exprEq | exprEq ;
 int exprAnd() {
+    Token *startTk = crtTk;
+
     if (!exprEq()) {
         return 0;
     }
@@ -186,7 +223,10 @@ int exprAnd() {
     return 1;
 }
 
+//exprOr: exprOr OR exprAnd | exprAnd ;
 int exprOr() {
+    Token *startTk = crtTk;
+
     if (!exprAnd()) {
         return 0;
     }
@@ -199,6 +239,8 @@ int exprOr() {
     return 1;
 }
 
+
+//exprAssign: exprUnary ASSIGN exprAssign | exprOr ;
 int exprAssign() {
     Token *startTk = crtTk;
 
@@ -222,11 +264,23 @@ int exprAssign() {
     return 0;
 }
 
+//expr: exprAssign ;
 int expr() {
     return exprAssign();
 }
 
+/*
+stm: stmCompound 
+           | IF LPAR expr RPAR stm ( ELSE stm )?
+           | WHILE LPAR expr RPAR stm
+           | FOR LPAR expr? SEMICOLON expr? SEMICOLON expr? RPAR stm
+           | BREAK SEMICOLON
+           | RETURN expr? SEMICOLON
+           | expr? SEMICOLON ;
+*/
 int stm() {
+    Token *startTk = crtTk;
+
     if (stmCompound()) {
          return 1;
     }
@@ -310,15 +364,20 @@ int stm() {
     return 0;
 }
 
+//stmCompound: LACC ( declVar | stm )* RACC ;
 int stmCompound() {
+    Token *startTk = crtTk;
+
     if (!consume(LACC)) {
         return 0;
     }
     while (declVar() || stm());
+
     if (!consume(RACC)) tkerr(crtTk, "missing } after compound statement");
     return 1;
 }
 
+//declVar:  typeBase ID arrayDecl? ( COMMA ID arrayDecl? )* SEMICOLON ;
 int declVar() {
     Token *startTk = crtTk;
 
@@ -342,7 +401,11 @@ int declVar() {
     return 1;
 }
 
+
+//declStruct: STRUCT ID LACC declVar* RACC SEMICOLON ;
 int declStruct() {
+    Token *startTk = crtTk;
+
     if (!consume(STRUCT)) {
         return 0;
     }
@@ -360,7 +423,15 @@ int declStruct() {
     return 1;
 }
 
+/*
+declFunc: ( typeBase MUL? | VOID ) ID 
+                        LPAR ( funcArg ( COMMA funcArg )* )? RPAR 
+                        stmCompound ;
+
+*/
 int declFunc() {
+    Token *startTk = crtTk;
+
     if (!(typeBase() || consume(VOID))) {
         return 0;
     }
@@ -390,7 +461,10 @@ int declFunc() {
     return 1;
 }
 
+//typeBase: INT | DOUBLE | CHAR | STRUCT ID ;
 int typeBase() {
+    Token *startTk = crtTk;
+
     if (consume(INT) || consume(DOUBLE) || consume(CHAR)) {
          return 1;
     }
@@ -404,7 +478,10 @@ int typeBase() {
     return 0;
 }
 
+//arrayDecl: LBRACKET expr? RBRACKET ;
 int arrayDecl() {
+    Token *startTk = crtTk;
+
     if (consume(LBRACKET)) {
         expr();
         if (!consume(RBRACKET)) {
@@ -415,7 +492,10 @@ int arrayDecl() {
     return 0;
 }
 
+//typeName: typeBase arrayDecl? ;
 int typeName() {
+    Token *startTk = crtTk;
+
     if (!typeBase()) {
         return 0;
     }
@@ -423,7 +503,10 @@ int typeName() {
     return 1;
 }
 
+//funcArg: typeBase ID arrayDecl? ;
 int funcArg() {
+    Token *startTk = crtTk;
+
     if (!typeBase()) {
         return 0;
     }
@@ -437,14 +520,17 @@ int funcArg() {
 
 int unit() {
     while (declStruct() || declFunc() || declVar());
-    if (!consume(END)) tkerr(crtTk, "missing END token");
+
+    if (!consume(END)) {
+        tkerr(crtTk, "missing END token");
+    }
     return 1;
 }
 
 void runSyntacticalFromTokens() {
 crtTk = tokens;
 
-
+//unit: ( declStruct | declFunc | declVar )* END ;
 if (unit()) {
     printf("Parsing completed successfully.\n\n");
 } else {
