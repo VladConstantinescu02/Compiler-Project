@@ -373,7 +373,9 @@ int stmCompound() {
     }
     while (declVar() || stm());
 
-    if (!consume(RACC)) tkerr(crtTk, "missing } after compound statement");
+    if (!consume(RACC)) {
+        tkerr(crtTk, "missing } after compound statement");
+    }
     return 1;
 }
 
